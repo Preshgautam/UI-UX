@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SolarHome - Off-Grid Solar App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header {
+            background: #0d3b66;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .battery-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .battery-indicator i {
+            margin-right: 5px;
+            color: #4cd964;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-tab {
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            flex: 1;
+            margin: 0 5px;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab.active {
+            background: #0d3b66;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-tab i {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .device-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .device-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .device-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #0d3b66;
+        }
+        
+        .device-status {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .savings-card {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .savings-card h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .savings-amount {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.3);
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: white;
+            width: 65%;
+            border-radius: 5px;
+        }
+        
+        .emi-calculator {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .emi-calculator h3 {
+            margin-bottom: 15px;
+            text-align: center;
+            color: #0d3b66;
+        }
+        
+        .emi-option {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        
+        .emi-option.selected {
+            background: #0d3b66;
+            color: white;
+        }
+        
+        .alert-card {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .alert-icon {
+            font-size: 24px;
+            color: #fdcb6e;
+            margin-right: 15px;
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #d35400;
+        }
+        
+        .alert-desc {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #0d3b66;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0a2a4d;
+        }
+        
+        .btn-voice {
+            background: #f9a826;
+            color: white;
+            margin-top: 10px;
+        }
+        
+        .btn-voice:hover {
+            background: #e5951b;
+        }
+        
+        .btn-icon {
+            margin-right: 10px;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .voice-status {
+            background: #e8f4fc;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 15px 0;
+            text-align: center;
+            display: none;
+        }
+        
+        .voice-status.recording {
+            display: block;
+            background: #ffe6e6;
+        }
+        
+        .voice-status.playing {
+            display: block;
+            background: #e6ffe6;
+        }
+        
+        .pulse {
+            animation: pulse-animation 1.5s infinite;
+        }
+        
+        @keyframes pulse-animation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SolarHome</h1>
+            <p>Off-Grid Solar Solution for Rural Homes</p>
+            <div class="battery-indicator">
+                <i class="fas fa-battery-three-quarters"></i>
+                <span>75%</span>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="voice-status" id="voiceStatus">
+                <i class="fas fa-microphone"></i>
+                <span id="voiceText">Voice guidance active</span>
+            </div>
+            
+            <div class="nav-tabs">
+                <div class="nav-tab active" onclick="showScreen('home')">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </div>
+                <div class="nav-tab" onclick="showScreen('emi')">
+                    <i class="fas fa-calculator"></i>
+                    <span>EMI Plans</span>
+                </div>
+                <div class="nav-tab" onclick="showScreen('alerts')">
+                    <i class="fas fa-bell"></i>
+                    <span>Alerts</span>
+                </div>
+            </div>
+            
+            <!-- Home Screen -->
+            <div id="home-screen" class="screen active">
+                <div class="savings-card">
+                    <h3>Energy Savings This Month</h3>
+                    <div class="savings-amount">₹ 387</div>
+                    <p>Compared to ₹ 620 last month</p>
+                </div>
+                
+                <h3>Device Control</h3>
+                <div class="device-grid">
+                    <div class="device-card" onclick="toggleDevice(this, 'light')">
+                        <div class="device-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h4>Lights</h4>
+                        <p class="device-status">ON - 2 hrs 45 min</p>
+                    </div>
+                    <div class="device-card" onclick="toggleDevice(this, 'fan')">
+                        <div class="device-icon">
+                            <i class="fas fa-fan"></i>
+                        </div>
+                        <h4>Fans</h4>
+                        <p class="device-status">OFF</p>
+                    </div>
+                    <div class="device-card" onclick="toggleDevice(this, 'charging')">
+                        <div class="device-icon">
+                            <i class="fas fa-tablet-alt"></i>
+                        </div>
+                        <h4>Charging</h4>
+                        <p class="device-status">2 devices</p>
+                    </div>
+                    <div class="device-card" onclick="toggleDevice(this, 'tv')">
+                        <div class="device-icon">
+                            <i class="fas fa-tv"></i>
+                        </div>
+                        <h4>TV</h4>
+                        <p class="device-status">OFF</p>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <p style="text-align: center; margin-bottom: 15px;">Daily Usage: 65% of limit</p>
+                
+                <button class="btn btn-primary" onclick="speakText('Adding a new device. Please select the device type you want to add.')">
+                    <i class="fas fa-plus btn-icon"></i>Add Device
+                </button>
+                
+                <button class="btn btn-voice" onclick="startVoiceCommand()">
+                    <i class="fas fa-microphone btn-icon"></i>Voice Command
+                </button>
+            </div>
+            
+            <!-- EMI Calculator Screen -->
+            <div id="emi-screen" class="screen">
+                <div class="emi-calculator">
+                    <h3>Choose Payment Plan</h3>
+                    
+                    <div class="emi-option selected" onclick="selectEmiOption(this)">
+                        <div>
+                            <strong>Daily Payment</strong>
+                            <p>₹50 per day for 60 days</p>
+                        </div>
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    
+                    <div class="emi-option" onclick="selectEmiOption(this)">
+                        <div>
+                            <strong>Weekly Payment</strong>
+                            <p>₹300 per week for 10 weeks</p>
+                        </div>
+                        <i class="fas fa-circle"></i>
+                    </div>
+                    
+                    <div class="emi-option" onclick="selectEmiOption(this)">
+                        <div>
+                            <strong>Monthly Payment</strong>
+                            <p>₹1200 per month for 3 months</p>
+                        </div>
+                        <i class="fas fa-circle"></i>
+                    </div>
+                    
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 30%;"></div>
+                    </div>
+                    <p style="text-align: center; margin: 10px 0;">6 of 20 weekly payments completed</p>
+                </div>
+                
+                <button class="btn btn-primary" onclick="speakText('Making payment. Please confirm your payment method.')">
+                    <i class="fas fa-credit-card btn-icon"></i>Make Payment
+                </button>
+                
+                <button class="btn btn-voice" onclick="speakText('Daily payment option. Pay 50 rupees per day for 60 days. Weekly payment option. Pay 300 rupees per week for 10 weeks. Monthly payment option. Pay 1200 rupees per month for 3 months.')">
+                    <i class="fas fa-volume-up btn-icon"></i>Explain in Voice
+                </button>
+            </div>
+            
+            <!-- Alerts Screen -->
+            <div id="alerts-screen" class="screen">
+                <div class="alert-card">
+                    <div class="alert-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">Battery at 20%!</div>
+                        <div class="alert-desc">Turn off non-essential devices to conserve power</div>
+                    </div>
+                </div>
+                
+                <div class="alert-card">
+                    <div class="alert-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">Payment Due in 2 Days</div>
+                        <div class="alert-desc">Weekly payment of ₹300 for solar fan</div>
+                    </div>
+                </div>
+                
+                <div class="alert-card">
+                    <div class="alert-icon">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">Sunny Weather Today</div>
+                        <div class="alert-desc">Battery will charge faster than usual</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="speakText('Battery at 20 percent. Turn off non essential devices to conserve power. Payment due in 2 days. Weekly payment of 300 rupees for solar fan. Sunny weather today. Battery will charge faster than usual.')">
+                    <i class="fas fa-volume-up btn-icon"></i>Play Voice Alerts
+                </button>
+                
+                <button class="btn btn-voice" onclick="speakText('Helping your neighbor. Please select which neighbor you want to help and how much you want to contribute.')">
+                    <i class="fas fa-handshake btn-icon"></i>Help My Neighbor
+                </button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Designed for rural communities • Works offline • Voice guidance available</p>
+        </div>
+    </div>
+
+    <script>
+        // Screen navigation
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show the selected screen and activate the tab
+            document.getElementById(screenId + '-screen').classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+        
+        // EMI option selection
+        function selectEmiOption(option) {
+            document.querySelectorAll('.emi-option').forEach(opt => {
+                opt.classList.remove('selected');
+                opt.querySelector('i').classList.remove('fa-check-circle');
+                opt.querySelector('i').classList.add('fa-circle');
+            });
+            
+            option.classList.add('selected');
+            option.querySelector('i').classList.remove('fa-circle');
+            option.querySelector('i').classList.add('fa-check-circle');
+        }
+        
+        // Device toggle function
+        function toggleDevice(device, deviceType) {
+            const statusEl = device.querySelector('.device-status');
+            const iconEl = device.querySelector('.device-icon');
+            
+            if (statusEl.textContent.includes('OFF')) {
+                statusEl.textContent = deviceType === 'charging' ? '2 devices' : 'ON - 0 hrs 5 min';
+                iconEl.style.color = '#4cd964';
+                speakText(`Turning on ${deviceType}`);
+            } else {
+                statusEl.textContent = 'OFF';
+                iconEl.style.color = '#0d3b66';
+                speakText(`Turning off ${deviceType}`);
+            }
+        }
+        
+        // Text-to-speech function
+        function speakText(text) {
+            // Show voice status
+            const voiceStatus = document.getElementById('voiceStatus');
+            const voiceText = document.getElementById('voiceText');
+            voiceStatus.classList.add('playing');
+            voiceText.textContent = 'Playing voice guidance...';
+            
+            // Use the browser's speech synthesis API
+            if ('speechSynthesis' in window) {
+                const speech = new SpeechSynthesisUtterance();
+                speech.text = text;
+                speech.volume = 1;
+                speech.rate = 0.9;
+                speech.pitch = 1;
+                
+                window.speechSynthesis.speak(speech);
+                
+                // When speech is finished, hide the status
+                speech.onend = function() {
+                    voiceStatus.classList.remove('playing');
+                };
+            } else {
+                voiceText.textContent = 'Voice not supported on this browser';
+                setTimeout(() => {
+                    voiceStatus.classList.remove('playing');
+                }, 2000);
+            }
+        }
+        
+        // Voice command function
+        function startVoiceCommand() {
+            // Show voice status
+            const voiceStatus = document.getElementById('voiceStatus');
+            const voiceText = document.getElementById('voiceText');
+            voiceStatus.classList.add('recording');
+            voiceText.textContent = 'Listening for command...';
+            
+            // Check if the browser supports speech recognition
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                
+                recognition.lang = 'en-US';
+                recognition.continuous = false;
+                
+                recognition.start();
+                
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript.toLowerCase();
+                    voiceText.textContent = `Heard: ${transcript}`;
+                    
+                    // Process the command
+                    if (transcript.includes('light') || transcript.includes('lights')) {
+                        const lightDevice = document.querySelector('.device-card:nth-child(1)');
+                        toggleDevice(lightDevice, 'light');
+                    } else if (transcript.includes('fan') || transcript.includes('fans')) {
+                        const fanDevice = document.querySelector('.device-card:nth-child(2)');
+                        toggleDevice(fanDevice, 'fan');
+                    } else if (transcript.includes('charge') || transcript.includes('charging')) {
+                        const chargingDevice = document.querySelector('.device-card:nth-child(3)');
+                        toggleDevice(chargingDevice, 'charging');
+                    } else if (transcript.includes('tv') || transcript.includes('television')) {
+                        const tvDevice = document.querySelector('.device-card:nth-child(4)');
+                        toggleDevice(tvDevice, 'tv');
+                    } else if (transcript.includes('payment') || transcript.includes('pay')) {
+                        showScreen('emi');
+                    } else if (transcript.includes('alert') || transcript.includes('alerts')) {
+                        showScreen('alerts');
+                    } else if (transcript.includes('home') || transcript.includes('main')) {
+                        showScreen('home');
+                    } else {
+                        speakText("Sorry, I didn't understand that command. Please try again.");
+                    }
+                };
+                
+                recognition.onend = function() {
+                    voiceStatus.classList.remove('recording');
+                };
+                
+                recognition.onerror = function() {
+                    voiceText.textContent = 'Error listening for command';
+                    voiceStatus.classList.remove('recording');
+                };
+            } else {
+                voiceText.textContent = 'Voice command not supported on this browser';
+                setTimeout(() => {
+                    voiceStatus.classList.remove('recording');
+                }, 2000);
+            }
+        }
+        
+        // Initialize with a welcome message
+        window.onload = function() {
+            setTimeout(() => {
+                speakText("Welcome to Solar Home. Your off grid solar solution. Tap on any device to control it. Or use voice commands for help.");
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
